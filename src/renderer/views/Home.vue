@@ -46,11 +46,21 @@ export default {
       }, 50);
     },
     handleFiles(list) {
+      var errCount = 0;
       for (let i = 0; i < list.length; i++) {
-        let data = fs.readFileSync(list[i]);
-        fs.writeFileSync(list[i], data, {});
+        try{
+          let data = fs.readFileSync(list[i]);
+          fs.writeFileSync(list[i], data, {});
+        }catch(e){
+          errCount++
+        }
       }
-      console.log('complete')
+      dialog.showMessageBox({
+        type:'none',
+        buttons:['确定'],
+        title:'已完成',
+        message:`失败数量：${errCount} / ${list.length}`
+      })
       this.fullscreenLoading = false;
     },
     handleFilesList(path) {
