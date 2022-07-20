@@ -17,7 +17,7 @@
     "postinstall": ""
   },
   "build": {
-    "productName": "decrypt",
+    "productName": "electron",
     "appId": "com.decrypt.app",
     "directories": {
       "output": "build"
