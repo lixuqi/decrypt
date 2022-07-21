@@ -59,7 +59,7 @@ export default {
     handleFiles() {
       const loading = this.$loading({
         lock: true,
-        text: 'Loading...',
+        text: '处理中...',
         spinner: 'el-icon-loading',
         background: 'rgba(0, 0, 0, 0.8)'
       });
@@ -79,7 +79,7 @@ export default {
           type: 'none',
           buttons: ['确定'],
           title: '已完成',
-          message: errFile.length > 0 ? `全部完成` : `失败数量：${errFile.length} / ${list.length}`
+          message: errFile.length > 0 ? `失败数量：${errFile.length} / ${list.length} \n 已生成errFile.log` : `全部完成`
         }, () => {
           if (errFile.length > 0) fs.writeFileSync('errFile.log', errFile.join(','), {});
           this.complete = true;
