@@ -12,4 +12,10 @@
 
 <style>
   /* CSS */
+  html {
+    height: 60px;
+  }
+  body{
+    margin: 0!important;
+  }
 </style>

@@ -1,8 +1,17 @@
 <template>
-  <div class="row">
-    <el-input size="small" v-model="path" />
-    <el-button size="small" ref="select" type="primary" @click="selectDirectory">浏览</el-button>
-    <el-button size="small" v-loading.fullscreen.lock="fullscreenLoading" :element-loading-text="loadingText" ref="start" type="primary" @click="decryptAllFiles">开始</el-button>
+  <div class="col">
+    <div class="row">
+      <el-input size="small" v-model="path">
+        <template #suffix>
+          <span :class="[{'icon-success':fileList.length>0,'icon-complete':complete}]" v-if="!!path" class="el-icon-circle-check icon-default"></span>
+        </template>
+      </el-input>
+      <el-button size="small" ref="select" type="info" @click="selectDirectory">浏览</el-button>
+    </div>
+    <div class="row row-btn">
+      <el-button :disabled="!path" size="small" v-loading.fullscreen.lock="fullscreenLoading" element-loading-text="加载文件..." element-loading-spinner="el-icon-loading" element-loading-background="rgba(0, 0, 0, 0.8)" type="primary" @click="loadFile">读取</el-button>
+      <el-button :disabled="fileList.length==0" size="small" type="primary" @click="handleFiles">开始</el-button>
+    </div>
   </div>
 </template>
 
@@ -15,8 +24,9 @@ export default {
   data() {
     return {
       fullscreenLoading: false,
-      loadingText: '',
-      path: ''
+      path: '',
+      fileList: [],
+      complete: false
     }
   },
   mounted() {
@@ -25,43 +35,57 @@ export default {
     selectDirectory() {
       dialog.showOpenDialog({
         properties: ["openDirectory"],
-      },(res)=>{
-        if (res.canceled) {
-          this.path = "";
-        } else {
+      }, (res) => {
+        if (res) {
           this.path = res[0];
+        } else {
+          this.path = "";
         }
+        this.complete = false;
+        this.fileList = [];
       })
     },
-    decryptAllFiles() {
+    loadFile() {
       if (!this.path) return;
-      this.loadingText = "加载文件...";
       this.fullscreenLoading = true;
       setTimeout(() => {
         this.handleFilesList(this.path).then((list) => {
-          this.$nextTick(() => {
-            this.handleFiles(list);
-          })
+          this.fullscreenLoading = false;
+          this.fileList = list;
+          this.complete = false;
         });
       }, 50);
     },
-    handleFiles(list) {
-      var errCount = 0;
-      for (let i = 0; i < list.length; i++) {
-        try{
-          let data = fs.readFileSync(list[i]);
-          fs.writeFileSync(list[i], data, {});
-        }catch(e){
-          errCount++
+    handleFiles() {
+      const loading = this.$loading({
+        lock: true,
+        text: 'Loading...',
+        spinner: 'el-icon-loading',
+        background: 'rgba(0, 0, 0, 0.8)'
+      });
+      let list = this.fileList;
+      let errFile = [];
+      setTimeout(() => {
+        for (let i = 0; i < list.length; i++) {
+          try {
+            let data = fs.readFileSync(list[i]);
+            fs.unlinkSync(list[i]);
+            fs.writeFileSync(list[i], data, {});
+          } catch (e) {
+            errFile.push(list[i])
+          }
         }
-      }
-      dialog.showMessageBox({
-        type:'none',
-        buttons:['确定'],
-        title:'已完成',
-        message:`失败数量：${errCount} / ${list.length}`
-      })
-      this.fullscreenLoading = false;
+        dialog.showMessageBox({
+          type: 'none',
+          buttons: ['确定'],
+          title: '已完成',
+          message: errFile.length > 0 ? `全部完成` : `失败数量：${errFile.length} / ${list.length}`
+        }, () => {
+          if (errFile.length > 0) fs.writeFileSync('errFile.log', errFile.join(','), {});
+          this.complete = true;
+          loading.close()
+        })
+      }, 50);
     },
     handleFilesList(path) {
       return new Promise((resolve, reject) => {
@@ -96,13 +120,31 @@ export default {
 </script>
 
 <style scoped>
+.col {
+  margin: 10px;
+  margin-right: 0;
+}
 .row {
   display: flex;
+  margin-bottom: 10px;
   flex-direction: row;
 }
-.row button {
+.row > * {
   display: inline-block;
-  margin: 0!important;
-  margin-left: 10px!important;
+  margin: 0 !important;
+  margin-right: 10px !important;
+}
+.row-btn button {
+  width: 50%;
+}
+.icon-default {
+  line-height: 32px;
+  font-size: 16px;
+}
+.icon-success {
+  color: #409eff;
+}
+.icon-complete {
+  color: #67c23a;
 }
 </style>

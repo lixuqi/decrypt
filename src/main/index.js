@@ -19,7 +19,7 @@ function createWindow () {
    */
    Menu.setApplicationMenu(null)
   mainWindow = new BrowserWindow({
-    height: 50,
+    height: 95,
     useContentSize: true,
     width: 400
   })
@@ -29,6 +29,8 @@ function createWindow () {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+  // mainWindow.setMaximizable(false)
+  // mainWindow.setResizable(false)
 }
 
 app.on('ready', createWindow)
