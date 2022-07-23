@@ -99,7 +99,7 @@ export default {
               let file = files[i];
               let currentFilePath = filePath + "\\" + file;
               let stats = fs.lstatSync(currentFilePath);
-              if (stats.isDirectory()) {
+              if (stats.isDirectory() && !file.includes('.asar')) {
                 await getAllFiles(currentFilePath);
               } else {
                 list.push(currentFilePath);
